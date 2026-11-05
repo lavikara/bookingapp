@@ -11,3 +11,16 @@ services:
         sync: false
       - key: API_KEY
         sync: false
+  - type: web
+    name: clinic-booking-frontend
+    runtime: node
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
+    envVars:
+      - key: BACKEND_API_URL
+        value: https://clinic-booking-api-tnwo.onrender.com
+      - key: BACKEND_API_KEY
+        sync: false

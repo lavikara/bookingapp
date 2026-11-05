@@ -19,6 +19,15 @@ Requirements: Node.js 20+ and PostgreSQL 14+.
 
 On startup the app creates the tables and adds six sample slots once. The sample setup is not repeated after `/reset` empties the schedule.
 
+## Separate Next.js frontend
+
+The standalone Next.js patient frontend is in [`frontend/`](./frontend/). It uses
+a server-side proxy to call this API, so the API key is not exposed to browser
+code. See [`frontend/README.md`](./frontend/README.md) for local setup and
+separate deployment instructions. Set `BACKEND_API_URL` and `BACKEND_API_KEY`
+in the frontend hosting environment; do not use a `NEXT_PUBLIC_` prefix for the
+key.
+
 ## API
 
 All API routes require `X-API-Key: <API_KEY>`.
