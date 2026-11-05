@@ -5,6 +5,7 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function isAllowedRequest(path: string, method: string): boolean {
+  if (path === "/reset") return method === "POST";
   if (path === "/slots") return method === "GET";
   if (path === "/bookings") return method === "GET" || method === "POST";
   const bookingId = path.match(/^\/bookings\/([^/]+)$/)?.[1];
@@ -25,6 +26,14 @@ async function proxyRequest(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
+  const resetApiKey = path === "/reset" ? request.headers.get("X-API-Key") : null;
+  if (path === "/reset" && resetApiKey !== apiKey) {
+    return NextResponse.json(
+      { error: "missing or invalid API key" },
+      { status: 401 },
+    );
+  }
+
   let destination: URL;
   try {
     destination = new URL(apiUrl);
@@ -35,7 +44,7 @@ async function proxyRequest(request: NextRequest): Promise<NextResponse> {
   destination.pathname = `${destination.pathname.replace(/\/+$/, "")}${path}`;
   destination.search = new URL(request.url).search;
 
-  const headers = new Headers({ "X-API-Key": apiKey });
+  const headers = new Headers({ "X-API-Key": resetApiKey ?? apiKey });
   const contentType = request.headers.get("content-type");
   const idempotencyKey = request.headers.get("idempotency-key");
   if (contentType) headers.set("Content-Type", contentType);

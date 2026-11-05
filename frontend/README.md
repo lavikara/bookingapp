@@ -30,5 +30,7 @@ server-side environment variables in the hosting provider. The frontend server
 must be able to make HTTPS requests to the backend.
 
 The proxy allows only `GET /slots`, `GET /bookings` (including booking lookup by
-ID), `POST /bookings`, and `DELETE /bookings/{id}`. It does not expose the
-backend's administrative `/reset` endpoint.
+ID), `POST /bookings`, and `DELETE /bookings/{id}` for ordinary frontend
+requests. It also forwards `POST /reset` only when the caller explicitly
+provides the valid `X-API-Key` header; this destructive admin operation is not
+invoked by the patient UI and does not inherit the server-side key implicitly.
