@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isIP } from "node:net";
 
 const API_PREFIX = "/api/backend";
 const UUID_PATTERN =
@@ -47,8 +48,11 @@ async function proxyRequest(request: NextRequest): Promise<NextResponse> {
   const headers = new Headers({ "X-API-Key": resetApiKey ?? apiKey });
   const contentType = request.headers.get("content-type");
   const idempotencyKey = request.headers.get("idempotency-key");
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  const clientIp = forwardedFor?.split(",")[0]?.trim();
   if (contentType) headers.set("Content-Type", contentType);
   if (idempotencyKey) headers.set("Idempotency-Key", idempotencyKey);
+  if (clientIp && isIP(clientIp)) headers.set("X-Booking-Client-IP", clientIp);
 
   try {
     const response = await fetch(destination, {

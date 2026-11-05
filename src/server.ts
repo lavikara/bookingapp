@@ -207,7 +207,9 @@ app.post("/bookings", async (req, res, next) => {
       ? (req.body as Record<string, unknown>).email
       : null,
   );
-  const ipForLimit = normalizeIpForAttempt(req.ip);
+  const ipForLimit = normalizeIpForAttempt(
+    req.header("X-Booking-Client-IP") ?? req.ip,
+  );
   if (!ipForLimit) {
     errorResponse(res, 500, "unable to determine request IP address");
     return;

@@ -41,7 +41,7 @@ All API routes require `X-API-Key: <API_KEY>`.
 | DELETE | `/bookings/{id}` | Cancel a confirmed booking |
 | GET | `/bookings?email=ada@example.com&limit=10&cursor=...` | Page through a person's bookings |
 
-Booking writes are protected by a partial unique database index, so concurrent requests cannot confirm the same slot. Booking attempts are limited to 5 per email and 20 per client IP in a rolling 60-second window; both limits and idempotency results are persisted in PostgreSQL. The Express service trusts one proxy hop for the client IP forwarded by Render.
+Booking writes are protected by a partial unique database index, so concurrent requests cannot confirm the same slot. Booking attempts are limited to 5 per email and 20 per client IP in a rolling 60-second window; both limits and idempotency results are persisted in PostgreSQL. The API trusts one proxy hop for direct requests from Render, and the Next.js proxy forwards the client IP observed by its Render ingress.
 
 ## Deploy
 
