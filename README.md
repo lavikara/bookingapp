@@ -19,6 +19,13 @@ Requirements: Node.js 20+ and PostgreSQL 14+.
 
 On startup the app creates the tables and adds six sample slots once. The sample setup is not repeated after `/reset` empties the schedule.
 
+## Backend structure
+
+- `src/server.ts` configures Express, middleware, startup, and shutdown.
+- `src/routes/apiRoutes.ts` maps API paths to controller handlers.
+- `src/controllers/` contains the reset, slot, and booking request handlers.
+- `src/controllers/shared.ts` holds response and booking-row helpers shared by controllers.
+
 ## Separate Next.js frontend
 
 The standalone Next.js patient frontend is in [`frontend/`](./frontend/). It uses
@@ -54,3 +61,8 @@ The web process listens on Render's `PORT`; database schema initialization runs 
 ```sh
 npm test
 ```
+
+`npm test` always runs the validation unit tests and also runs the HTTP endpoint
+suite when `TEST_DATABASE_URL` is set. The endpoint suite creates a temporary
+PostgreSQL schema and drops it afterward; use a database account with permission
+to create schemas. To run only those tests, use `npm run test:integration`.
