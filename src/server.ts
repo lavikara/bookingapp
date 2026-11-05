@@ -1,6 +1,5 @@
 import "dotenv/config";
 import crypto from "node:crypto";
-import path from "node:path";
 import express, { NextFunction, Request, Response } from "express";
 import { PoolClient, QueryResultRow } from "pg";
 import { initializeDatabase, pool } from "./db";
@@ -39,7 +38,10 @@ if (!apiKey) {
 }
 
 app.use(express.json({ limit: "16kb" }));
-app.use(express.static(path.resolve(process.cwd(), "public")));
+
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const isApiRequest =

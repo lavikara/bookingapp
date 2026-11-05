@@ -1,6 +1,6 @@
 # Clinic booking API
 
-TypeScript/Express booking service with PostgreSQL persistence and a small browser UI. The API follows the [Clinic Booking API assessment contract](https://koyaacademy.com/assessment-api). It implements all five levels: API-key access, validation, concurrency-safe booking and cancellation, idempotency and cursor paging, and per-email attempt throttling.
+TypeScript/Express booking API with PostgreSQL persistence. The API follows the [Clinic Booking API assessment contract](https://koyaacademy.com/assessment-api). It implements all five levels: API-key access, validation, concurrency-safe booking and cancellation, idempotency and cursor paging, and per-email attempt throttling.
 
 ## Run locally
 
@@ -15,7 +15,7 @@ Requirements: Node.js 20+ and PostgreSQL 14+.
    npm run dev
    ```
 
-4. Open `http://localhost:3000` and enter the API key to load available slots.
+4. The API listens at `http://localhost:3000`; `GET /health` is its unauthenticated health check. To run the separate patient frontend, follow [`frontend/README.md`](./frontend/README.md) and set its `BACKEND_API_URL` to `http://localhost:3000`.
 
 On startup the app creates the tables and adds six sample slots once. The sample setup is not repeated after `/reset` empties the schedule.
 
@@ -45,7 +45,7 @@ Booking writes are protected by a partial unique database index, so concurrent r
 
 ## Deploy
 
-The included `render.yaml` is a Render Blueprint for the web service. Push this project to a Git provider, create a PostgreSQL database (for example on Neon), then create a Render Blueprint from the repository. Set `DATABASE_URL` to the database's SSL connection string and `API_KEY` to a secret value in the Render environment. Open the deployed URL and enter that same key in the page. Do not commit `.env` or expose the secret in frontend code.
+The included `render.yaml` is a Render Blueprint for the API and the separate Next.js frontend. Push this project to a Git provider, create a PostgreSQL database (for example on Neon), then create or sync a Render Blueprint from the repository. Set `DATABASE_URL` to the database's SSL connection string and `API_KEY` to a secret value in the API service environment. Set `BACKEND_API_URL` and `BACKEND_API_KEY` in the frontend service environment. Do not commit `.env` files or expose the secret in frontend code.
 
 The web process listens on Render's `PORT`; database schema initialization runs at startup. Use a persistent PostgreSQL service for data retention.
 
