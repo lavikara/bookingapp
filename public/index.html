@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#eff6f5" />
+    <title>Clinic appointments</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <p class="eyebrow">PATIENT PORTAL</p>
+        <h1>Book an appointment</h1>
+        <p class="intro">Browse available clinic times and reserve the one that works for you.</p>
+      </header>
+
+      <section class="panel access-panel" aria-labelledby="access-heading">
+        <div>
+          <p class="eyebrow">SECURE ACCESS</p>
+          <h2 id="access-heading">Connect to the booking service</h2>
+        </div>
+        <form id="connect-form" class="connect-form">
+          <label for="api-key">API key</label>
+          <div class="inline-form">
+            <input id="api-key" type="password" autocomplete="current-password" required />
+            <button type="submit">Load appointments</button>
+          </div>
+          <p class="hint">Your key is saved only in this browser.</p>
+        </form>
+      </section>
+
+      <div id="notice" class="notice" role="status" aria-live="polite"></div>
+      <section class="section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">THE SCHEDULE</p>
+            <h2>Available appointments</h2>
+          </div>
+          <button id="refresh-button" class="button-secondary" type="button" disabled>Refresh</button>
+        </div>
+        <div id="slots" class="slot-grid">
+          <p class="empty">Connect with your API key to see appointment times.</p>
+        </div>
+      </section>
+
+      <section id="booking-panel" class="panel booking-panel" hidden>
+        <div>
+          <p class="eyebrow">RESERVE YOUR TIME</p>
+          <h2>Complete your booking</h2>
+          <p id="selected-slot" class="hint"></p>
+        </div>
+        <form id="booking-form" class="booking-form">
+          <label for="patient-name">Full name</label>
+          <input id="patient-name" name="name" autocomplete="name" required />
+          <label for="patient-email">Email address</label>
+          <input id="patient-email" name="email" type="email" autocomplete="email" required />
+          <div class="form-actions">
+            <button id="submit-booking" type="submit">Confirm appointment</button>
+            <button id="close-booking" class="button-secondary" type="button">Close</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="confirmation" class="panel confirmation" hidden aria-live="polite"></section>
+
+      <section class="section lookup-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">ALREADY BOOKED?</p>
+            <h2>Find a booking</h2>
+          </div>
+        </div>
+        <form id="lookup-form" class="inline-form">
+          <label class="sr-only" for="booking-id">Booking ID</label>
+          <input id="booking-id" placeholder="Enter your booking ID" required />
+          <button type="submit">Look up</button>
+        </form>
+        <div id="lookup-result"></div>
+      </section>
+      <footer>Clinic appointments · Your details are used only to manage your booking.</footer>
+    </main>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
