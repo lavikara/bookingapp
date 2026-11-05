@@ -8,6 +8,7 @@ import {
   encodeCursor,
   isUuid,
   normalizeEmailForAttempt,
+  normalizeIpForAttempt,
   validateNewBooking,
 } from "./validation";
 
@@ -29,6 +30,7 @@ type Slot = {
 
 const app = express();
 const apiKey = process.env.API_KEY;
+const IP_BOOKING_ATTEMPT_LIMIT = 20;
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL must be configured");
@@ -38,6 +40,7 @@ if (!apiKey) {
 }
 
 app.use(express.json({ limit: "16kb" }));
+app.set("trust proxy", 1);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
@@ -150,6 +153,7 @@ app.post("/reset", async (req, res, next) => {
     await client.query("DELETE FROM slots");
     await client.query("DELETE FROM idempotency_records");
     await client.query("DELETE FROM booking_attempts");
+    await client.query("DELETE FROM booking_ip_attempts");
     for (const slot of slots) {
       await client.query(
         "INSERT INTO slots (id, provider, start_at, end_at) VALUES ($1, $2, $3, $4)",
@@ -203,6 +207,11 @@ app.post("/bookings", async (req, res, next) => {
       ? (req.body as Record<string, unknown>).email
       : null,
   );
+  const ipForLimit = normalizeIpForAttempt(req.ip);
+  if (!ipForLimit) {
+    errorResponse(res, 500, "unable to determine request IP address");
+    return;
+  }
   let client: PoolClient | undefined;
   try {
     client = await pool.connect();
@@ -232,6 +241,33 @@ app.post("/bookings", async (req, res, next) => {
       }
     }
 
+    await client.query(
+      "DELETE FROM booking_ip_attempts WHERE attempted_at < clock_timestamp() - interval '60 seconds'",
+    );
+    await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [
+      `attempt-ip:${ipForLimit}`,
+    ]);
+    await client.query(
+      "INSERT INTO booking_ip_attempts (ip_address) VALUES ($1)",
+      [ipForLimit],
+    );
+    const ipCount = await client.query<{
+      attempts: string;
+      retry_after: number | null;
+    }>(
+      `SELECT COUNT(*)::text AS attempts,
+              GREATEST(1, CEIL(EXTRACT(EPOCH FROM
+                (MIN(attempted_at) + interval '60 seconds' - clock_timestamp())
+              )))::integer AS retry_after
+       FROM booking_ip_attempts
+       WHERE ip_address = $1 AND attempted_at >= clock_timestamp() - interval '60 seconds'`,
+      [ipForLimit],
+    );
+    const ipLimitExceeded = Number(ipCount.rows[0].attempts) > IP_BOOKING_ATTEMPT_LIMIT;
+    const ipRetryAfter = ipCount.rows[0].retry_after ?? 1;
+
+    let emailLimitExceeded = false;
+    let emailRetryAfter = 1;
     if (emailForLimit) {
       await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [
         `attempt:${emailForLimit}`,
@@ -256,13 +292,24 @@ app.post("/bookings", async (req, res, next) => {
          WHERE email = $1 AND attempted_at >= clock_timestamp() - interval '60 seconds'`,
         [emailForLimit],
       );
-      if (Number(count.rows[0].attempts) > 5) {
-        const retryAfter = count.rows[0].retry_after ?? 1;
-        await client.query("COMMIT");
-        res.setHeader("Retry-After", String(retryAfter));
-        errorResponse(res, 429, "too many booking attempts for this email");
-        return;
-      }
+      emailLimitExceeded = Number(count.rows[0].attempts) > 5;
+      emailRetryAfter = count.rows[0].retry_after ?? 1;
+    }
+
+    if (emailLimitExceeded || ipLimitExceeded) {
+      await client.query("COMMIT");
+      res.setHeader(
+        "Retry-After",
+        String(emailLimitExceeded ? emailRetryAfter : ipRetryAfter),
+      );
+      errorResponse(
+        res,
+        429,
+        emailLimitExceeded
+          ? "too many booking attempts for this email"
+          : "too many booking attempts from this IP",
+      );
+      return;
     }
 
     const validation = validateNewBooking(req.body);

@@ -1,6 +1,6 @@
 # Clinic booking API
 
-TypeScript/Express booking API with PostgreSQL persistence. The API follows the [Clinic Booking API assessment contract](https://koyaacademy.com/assessment-api). It implements all five levels: API-key access, validation, concurrency-safe booking and cancellation, idempotency and cursor paging, and per-email attempt throttling.
+TypeScript/Express booking API with PostgreSQL persistence. The API follows the [Clinic Booking API assessment contract](https://koyaacademy.com/assessment-api). It implements all five levels: API-key access, validation, concurrency-safe booking and cancellation, idempotency and cursor paging, and per-email and per-IP attempt throttling.
 
 ## Run locally
 
@@ -41,7 +41,7 @@ All API routes require `X-API-Key: <API_KEY>`.
 | DELETE | `/bookings/{id}` | Cancel a confirmed booking |
 | GET | `/bookings?email=ada@example.com&limit=10&cursor=...` | Page through a person's bookings |
 
-Booking writes are protected by a partial unique database index, so concurrent requests cannot confirm the same slot. The rate limiter and idempotency results are also persisted in PostgreSQL.
+Booking writes are protected by a partial unique database index, so concurrent requests cannot confirm the same slot. Booking attempts are limited to 5 per email and 20 per client IP in a rolling 60-second window; both limits and idempotency results are persisted in PostgreSQL. The Express service trusts one proxy hop for the client IP forwarded by Render.
 
 ## Deploy
 

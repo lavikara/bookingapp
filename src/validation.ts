@@ -1,3 +1,5 @@
+import { isIP } from "node:net";
+
 export type NewBookingInput = {
   slot_id: string;
   name: string;
@@ -43,6 +45,33 @@ export function validateNewBooking(body: unknown): ValidationResult {
 export function normalizeEmailForAttempt(email: unknown): string | null {
   if (typeof email !== "string" || !email.trim()) return null;
   return email.trim().toLowerCase();
+}
+
+export function normalizeIpForAttempt(ip: unknown): string | null {
+  if (typeof ip !== "string") return null;
+  const normalized = ip.trim().toLowerCase();
+  const version = isIP(normalized);
+  if (!normalized || version === 0) return null;
+  if (version === 4) return normalized;
+
+  const canonical = new URL(`http://[${normalized}]/`).hostname.slice(1, -1);
+  if (canonical.startsWith("::ffff:")) {
+    const mappedIpv4 = canonical.slice("::ffff:".length);
+    if (isIP(mappedIpv4) === 4) return mappedIpv4;
+    const mappedWords = mappedIpv4.split(":");
+    if (mappedWords.length === 2) {
+      const high = Number.parseInt(mappedWords[0], 16);
+      const low = Number.parseInt(mappedWords[1], 16);
+      return [
+        high >> 8,
+        high & 255,
+        low >> 8,
+        low & 255,
+      ].join(".");
+    }
+  }
+
+  return canonical;
 }
 
 export type BookingCursor = { createdAt: string; id: string };

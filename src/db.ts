@@ -46,6 +46,15 @@ export async function initializeDatabase(): Promise<void> {
     CREATE INDEX IF NOT EXISTS booking_attempts_email_time_idx
       ON booking_attempts(email, attempted_at);
 
+    CREATE TABLE IF NOT EXISTS booking_ip_attempts (
+      ip_address text NOT NULL,
+      attempted_at timestamptz NOT NULL DEFAULT clock_timestamp()
+    );
+    CREATE INDEX IF NOT EXISTS booking_ip_attempts_address_time_idx
+      ON booking_ip_attempts(ip_address, attempted_at);
+    CREATE INDEX IF NOT EXISTS booking_ip_attempts_expiry_idx
+      ON booking_ip_attempts(attempted_at);
+
     CREATE TABLE IF NOT EXISTS app_meta (
       key text PRIMARY KEY,
       value text NOT NULL
