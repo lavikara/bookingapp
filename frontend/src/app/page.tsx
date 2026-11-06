@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { SubmitEvent } from "react";
 
 type Slot = {
   id: string;
@@ -105,7 +106,7 @@ export default function Home() {
     };
   }, []);
 
-  async function submitBooking(event: FormEvent<HTMLFormElement>) {
+  async function submitBooking(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedSlot) return;
     const formData = new FormData(event.currentTarget);
@@ -131,7 +132,7 @@ export default function Home() {
     }
   }
 
-  async function lookupBooking(event: FormEvent<HTMLFormElement>) {
+  async function lookupBooking(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const id = bookingId.trim();
     if (!id) return;
