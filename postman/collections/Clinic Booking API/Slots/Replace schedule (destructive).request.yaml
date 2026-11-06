@@ -1,0 +1,22 @@
+$kind: http-request
+description: "DANGER: this replaces the full schedule and deletes all existing bookings, idempotency records, and rate-limit history. Never send this request to production. Every slot must have a unique non-empty id, provider, valid start/end timestamps, and end later than start."
+url: "{{apiBaseUrl}}/reset"
+method: POST
+headers:
+  X-API-Key: "{{apiKey}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "slots": [
+        {
+          "id": "demo-slot-1",
+          "provider": "Dr Example",
+          "start": "2099-01-01T10:00:00.000Z",
+          "end": "2099-01-01T10:30:00.000Z"
+        }
+      ]
+    }
+examples: ./.resources/Replace schedule (destructive).resources/examples
+order: 2000

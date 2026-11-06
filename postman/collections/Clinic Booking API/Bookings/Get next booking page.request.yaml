@@ -1,0 +1,12 @@
+$kind: http-request
+description: Fetches the next booking page using the `next_cursor` saved by the previous request. Run only when the previous response returned a non-null cursor.
+url: "{{apiBaseUrl}}/bookings?email={{patientEmail}}&limit=10&cursor={{nextCursor}}"
+method: GET
+headers:
+  X-API-Key: "{{apiKey}}"
+queryParams:
+  email: "{{patientEmail}}"
+  limit: "10"
+  cursor: "{{nextCursor}}"
+examples: ./.resources/Get next booking page.resources/examples
+order: 5000

@@ -1,0 +1,8 @@
+$kind: http-request
+description: Retrieves the booking record. Returns 404 for an invalid or unknown booking id.
+url: "{{apiBaseUrl}}/bookings/{{bookingId}}"
+method: GET
+headers:
+  X-API-Key: "{{apiKey}}"
+examples: ./.resources/Get booking by ID.resources/examples
+order: 2000

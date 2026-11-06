@@ -1,0 +1,21 @@
+$kind: http-example
+request:
+  url: "{{apiBaseUrl}}/bookings/{{bookingId}}"
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "b8f1492a-0f08-49b0-87db-4fc731ef43c8",
+        "slot_id": "s1",
+        "name": "Example Patient",
+        "email": "patient@example.com",
+        "status": "confirmed",
+        "created_at": "2026-11-07T08:30:00.000Z"
+      }
+order: 1000

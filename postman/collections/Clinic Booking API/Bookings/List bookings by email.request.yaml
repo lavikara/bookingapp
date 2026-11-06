@@ -1,0 +1,23 @@
+$kind: http-request
+description: Lists a patient's bookings in ascending creation order. `email` is required. `limit` is 1–50 (default 10). The response includes `bookings` and `next_cursor`, which is null when there are no more results.
+url: "{{apiBaseUrl}}/bookings?email={{patientEmail}}&limit=10"
+method: GET
+headers:
+  X-API-Key: "{{apiKey}}"
+queryParams:
+  email: "{{patientEmail}}"
+  limit: "10"
+scripts:
+  - type: afterResponse
+    code: |-
+      if (pm.response.code === 200) {
+        const body = pm.response.json();
+        if (body.next_cursor) {
+          pm.collectionVariables.set('nextCursor', body.next_cursor);
+        } else {
+          pm.collectionVariables.unset('nextCursor');
+        }
+      }
+    language: text/javascript
+examples: ./.resources/List bookings by email.resources/examples
+order: 4000

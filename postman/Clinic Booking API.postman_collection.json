@@ -1,0 +1,538 @@
+{
+  "info": {
+    "_postman_id": "bc8ee37f-2253-4f4f-9f1e-77ea3142ca2f",
+    "name": "Clinic Booking API",
+    "description": "Clinic appointment booking API. Every endpoint, including /health, requires X-API-Key. Set apiBaseUrl and apiKey in a Postman environment before sending requests. POST /reset replaces the entire schedule and deletes all bookings, so use it only against a non-production environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "apiBaseUrl",
+      "value": "https://clinic-booking-api-tnwo.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bookingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "patientEmail",
+      "value": "patient@example.com",
+      "type": "string"
+    },
+    {
+      "key": "slotId",
+      "value": "s1",
+      "type": "string"
+    },
+    {
+      "key": "nextCursor",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "description": "Authenticated readiness endpoint. Requires X-API-Key like every other route.",
+      "item": [
+        {
+          "name": "Check API health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/health",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Returns `{ \"status\": \"ok\" }` when the service is running. Requires X-API-Key."
+          },
+          "response": [
+            {
+              "name": "Healthy",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{apiBaseUrl}}/health"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"ok\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Slots",
+      "description": "Protected schedule operations. Every request in this folder requires X-API-Key.",
+      "item": [
+        {
+          "name": "List available slots",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/slots",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "slots"
+              ]
+            },
+            "description": "Lists slots in chronological order. Optional query parameter `provider` filters by an exact provider name. Each result includes `id`, `provider`, `start`, `end`, and `available`."
+          },
+          "response": [
+            {
+              "name": "Slots returned",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{apiBaseUrl}}/slots"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"slots\": [\n    {\n      \"id\": \"s1\",\n      \"provider\": \"Dr Ade\",\n      \"start\": \"2026-11-07T09:00:00.000Z\",\n      \"end\": \"2026-11-07T09:30:00.000Z\",\n      \"available\": true\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Replace schedule (destructive)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slots\": [\n    {\n      \"id\": \"demo-slot-1\",\n      \"provider\": \"Dr Example\",\n      \"start\": \"2099-01-01T10:00:00.000Z\",\n      \"end\": \"2099-01-01T10:30:00.000Z\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBaseUrl}}/reset",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "reset"
+              ]
+            },
+            "description": "DANGER: this replaces the full schedule and deletes all existing bookings, idempotency records, and rate-limit history. Never send this request to production. Every slot must have a unique non-empty id, provider, valid start/end timestamps, and end later than start."
+          },
+          "response": [
+            {
+              "name": "Schedule replaced",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{apiBaseUrl}}/reset"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"slots replaced\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "description": "Booking creation, retrieval, cancellation, and history. All requests require X-API-Key.",
+      "item": [
+        {
+          "name": "Create booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('bookingId', body.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slot_id\": \"{{slotId}}\",\n  \"name\": \"Example Patient\",\n  \"email\": \"{{patientEmail}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiBaseUrl}}/bookings",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "bookings"
+              ]
+            },
+            "description": "Creates a confirmed booking. Send a new Idempotency-Key for each logical booking operation and reuse the same key/body for retries. Success is 201 and the response booking id is saved to `bookingId`. Validation errors are 400; missing slots are 404; already booked slots are 409; idempotency-key/body conflicts are 422; rate limits return 429 and Retry-After. Limit: 5 attempts per email and 20 per IP in a rolling 60-second window."
+          },
+          "response": [
+            {
+              "name": "Booking created",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{apiBaseUrl}}/bookings"
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"b8f1492a-0f08-49b0-87db-4fc731ef43c8\",\n  \"slot_id\": \"s1\",\n  \"name\": \"Example Patient\",\n  \"email\": \"patient@example.com\",\n  \"status\": \"confirmed\",\n  \"created_at\": \"2026-11-07T08:30:00.000Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get booking by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/bookings/{{bookingId}}",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}"
+              ]
+            },
+            "description": "Retrieves the booking record. Returns 404 for an invalid or unknown booking id."
+          },
+          "response": [
+            {
+              "name": "Booking found",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{apiBaseUrl}}/bookings/{{bookingId}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"b8f1492a-0f08-49b0-87db-4fc731ef43c8\",\n  \"slot_id\": \"s1\",\n  \"name\": \"Example Patient\",\n  \"email\": \"patient@example.com\",\n  \"status\": \"confirmed\",\n  \"created_at\": \"2026-11-07T08:30:00.000Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Cancel booking",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/bookings/{{bookingId}}",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "bookings",
+                "{{bookingId}}"
+              ]
+            },
+            "description": "Cancels a confirmed booking and returns it with status `cancelled`. Returns 404 if not found and 409 if already cancelled."
+          },
+          "response": [
+            {
+              "name": "Booking cancelled",
+              "originalRequest": {
+                "method": "DELETE",
+                "url": "{{apiBaseUrl}}/bookings/{{bookingId}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"b8f1492a-0f08-49b0-87db-4fc731ef43c8\",\n  \"slot_id\": \"s1\",\n  \"name\": \"Example Patient\",\n  \"email\": \"patient@example.com\",\n  \"status\": \"cancelled\",\n  \"created_at\": \"2026-11-07T08:30:00.000Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "List bookings by email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.next_cursor) {",
+                  "    pm.collectionVariables.set('nextCursor', body.next_cursor);",
+                  "  } else {",
+                  "    pm.collectionVariables.unset('nextCursor');",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/bookings?email={{patientEmail}}&limit=10",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "bookings"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "{{patientEmail}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Lists a patient's bookings in ascending creation order. `email` is required. `limit` is 1–50 (default 10). The response includes `bookings` and `next_cursor`, which is null when there are no more results."
+          },
+          "response": [
+            {
+              "name": "Booking page",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{apiBaseUrl}}/bookings?email={{patientEmail}}&limit=10"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"bookings\": [],\n  \"next_cursor\": null\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get next booking page",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{apiBaseUrl}}/bookings?email={{patientEmail}}&limit=10&cursor={{nextCursor}}",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "bookings"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "{{patientEmail}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "cursor",
+                  "value": "{{nextCursor}}"
+                }
+              ]
+            },
+            "description": "Fetches the next booking page using the `next_cursor` saved by the previous request. Run only when the previous response returned a non-null cursor."
+          },
+          "response": [
+            {
+              "name": "Next booking page",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{apiBaseUrl}}/bookings?email={{patientEmail}}&limit=10&cursor={{nextCursor}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"bookings\": [],\n  \"next_cursor\": null\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "description": "Use this request to confirm all routes, including /health, reject absent credentials.",
+      "item": [
+        {
+          "name": "Protected request without API key",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiBaseUrl}}/slots",
+              "host": [
+                "{{apiBaseUrl}}"
+              ],
+              "path": [
+                "slots"
+              ]
+            },
+            "description": "Expected response: HTTP 401 `{ \"error\": \"missing or invalid API key\" }`."
+          },
+          "response": [
+            {
+              "name": "API key required",
+              "originalRequest": {
+                "method": "GET",
+                "url": "{{apiBaseUrl}}/slots"
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"missing or invalid API key\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

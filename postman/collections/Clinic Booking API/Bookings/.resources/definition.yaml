@@ -1,0 +1,3 @@
+$kind: collection
+description: Booking creation, retrieval, cancellation, and history. All requests require X-API-Key.
+order: 3000

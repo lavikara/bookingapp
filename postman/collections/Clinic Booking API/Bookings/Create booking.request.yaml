@@ -1,0 +1,26 @@
+$kind: http-request
+description: "Creates a confirmed booking. Send a new Idempotency-Key for each logical booking operation and reuse the same key/body for retries. Success is 201 and the response booking id is saved to `bookingId`. Validation errors are 400; missing slots are 404; already booked slots are 409; idempotency-key/body conflicts are 422; rate limits return 429 and Retry-After. Limit: 5 attempts per email and 20 per IP in a rolling 60-second window."
+url: "{{apiBaseUrl}}/bookings"
+method: POST
+headers:
+  X-API-Key: "{{apiKey}}"
+  Idempotency-Key: "{{$guid}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "slot_id": "{{slotId}}",
+      "name": "Example Patient",
+      "email": "{{patientEmail}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      if (pm.response.code === 201) {
+        const body = pm.response.json();
+        pm.collectionVariables.set('bookingId', body.id);
+      }
+    language: text/javascript
+examples: ./.resources/Create booking.resources/examples
+order: 1000

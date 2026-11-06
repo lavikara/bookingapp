@@ -1,0 +1,9 @@
+$kind: collection
+description: Clinic appointment booking API. Set apiBaseUrl and apiKey in a Postman environment before sending protected requests. POST /reset replaces the entire schedule and deletes all bookings, so use it only against a non-production environment.
+variables:
+  apiBaseUrl: https://clinic-booking-api-tnwo.onrender.com
+  apiKey: ""
+  bookingId: ""
+  patientEmail: patient@example.com
+  slotId: s1
+  nextCursor: ""

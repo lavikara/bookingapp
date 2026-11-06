@@ -1,0 +1,21 @@
+$kind: http-example
+request:
+  url: "{{apiBaseUrl}}/bookings?email={{patientEmail}}&limit=10&cursor={{nextCursor}}"
+  method: GET
+  queryParams:
+    email: "{{patientEmail}}"
+    limit: "10"
+    cursor: "{{nextCursor}}"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "bookings": [],
+        "next_cursor": null
+      }
+order: 1000

@@ -1,0 +1,8 @@
+$kind: http-request
+description: Lists slots in chronological order. Optional query parameter `provider` filters by an exact provider name. Each result includes `id`, `provider`, `start`, `end`, and `available`.
+url: "{{apiBaseUrl}}/slots"
+method: GET
+headers:
+  X-API-Key: "{{apiKey}}"
+examples: ./.resources/List available slots.resources/examples
+order: 1000

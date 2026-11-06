@@ -102,20 +102,31 @@ test(
         return response.json() as Promise<JsonObject>;
       }
 
-      await t.test("health endpoint is public and reports healthy", async () => {
-        const response = await request("GET", "/health", { apiKey: null });
+      await t.test("health endpoint requires the API key and reports healthy", async () => {
+        const unauthorized = await request("GET", "/health", { apiKey: null });
+        assert.equal(unauthorized.status, 401);
+        assert.deepEqual(await json(unauthorized), {
+          error: "missing or invalid API key",
+        });
+        const response = await request("GET", "/health");
         assert.equal(response.status, 200);
         assert.deepEqual(await json(response), { status: "ok" });
       });
 
-      await t.test("all API endpoints reject missing and invalid API keys", async () => {
+      await t.test("all paths reject missing and invalid API keys before handling requests", async () => {
         const calls: Array<[string, string, RequestOptions?]> = [
+          ["GET", "/health"],
           ["GET", "/slots"],
           ["POST", "/reset", { body: { slots } }],
           ["POST", "/bookings", { body: {} }],
           ["GET", "/bookings?email=patient@example.com"],
           ["GET", "/bookings/00000000-0000-4000-8000-000000000001"],
           ["DELETE", "/bookings/00000000-0000-4000-8000-000000000001"],
+          ["GET", "/not-a-route"],
+          ["POST", "/bookings", {
+            rawBody: "{invalid",
+            headers: { "Content-Type": "application/json" },
+          }],
         ];
         for (const [method, path, options] of calls) {
           for (const apiKeyOption of [null, "wrong-api-key"]) {

@@ -1,0 +1,3 @@
+$kind: collection
+description: Use this request to confirm all routes, including /health, reject absent credentials.
+order: 4000

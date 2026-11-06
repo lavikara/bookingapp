@@ -1,0 +1,8 @@
+$kind: http-request
+description: Cancels a confirmed booking and returns it with status `cancelled`. Returns 404 if not found and 409 if already cancelled.
+url: "{{apiBaseUrl}}/bookings/{{bookingId}}"
+method: DELETE
+headers:
+  X-API-Key: "{{apiKey}}"
+examples: ./.resources/Cancel booking.resources/examples
+order: 3000

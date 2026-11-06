@@ -1,0 +1,3 @@
+$kind: collection
+description: Authenticated readiness endpoint. Requires X-API-Key like every other route.
+order: 1000

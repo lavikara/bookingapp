@@ -5,24 +5,20 @@ import { errorResponse } from "./controllers/shared";
 export function createApp(apiKey: string) {
   const app = express();
 
-  app.use(express.json({ limit: "16kb" }));
   app.set("trust proxy", 1);
 
-  app.get("/health", (_req, res) => {
-    res.json({ status: "ok" });
-  });
-
   app.use((req: Request, res: Response, next: NextFunction) => {
-    const isApiRequest =
-      req.path === "/slots" ||
-      req.path === "/reset" ||
-      req.path === "/bookings" ||
-      req.path.startsWith("/bookings/");
-    if (isApiRequest && req.header("X-API-Key") !== apiKey) {
+    if (req.header("X-API-Key") !== apiKey) {
       res.status(401).json({ error: "missing or invalid API key" });
       return;
     }
     next();
+  });
+
+  app.use(express.json({ limit: "16kb" }));
+
+  app.get("/health", (_req, res) => {
+    res.json({ status: "ok" });
   });
 
   app.use(apiRoutes);

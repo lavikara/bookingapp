@@ -1,0 +1,8 @@
+$kind: http-request
+description: 'Returns `{ "status": "ok" }` when the service is running. Requires X-API-Key.'
+url: "{{apiBaseUrl}}/health"
+method: GET
+headers:
+  X-API-Key: "{{apiKey}}"
+examples: ./.resources/Check API health.resources/examples
+order: 1000

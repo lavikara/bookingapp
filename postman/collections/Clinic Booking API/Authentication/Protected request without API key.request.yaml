@@ -1,0 +1,6 @@
+$kind: http-request
+description: 'Expected response for any route without X-API-Key: HTTP 401 `{ "error": "missing or invalid API key" }`.'
+url: "{{apiBaseUrl}}/slots"
+method: GET
+examples: ./.resources/Protected request without API key.resources/examples
+order: 1000

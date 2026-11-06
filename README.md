@@ -15,7 +15,7 @@ Requirements: Node.js 20+ and PostgreSQL 14+.
    npm run dev
    ```
 
-4. The API listens at `http://localhost:3000`; `GET /health` is its unauthenticated health check. To run the separate patient frontend, follow [`frontend/README.md`](./frontend/README.md) and set its `BACKEND_API_URL` to `http://localhost:3000`.
+4. The API listens at `http://localhost:3000`; every route, including `GET /health`, requires `X-API-Key: <API_KEY>`. To run the separate patient frontend, follow [`frontend/README.md`](./frontend/README.md) and set its `BACKEND_API_URL` to `http://localhost:3000`.
 
 On startup the app creates the tables and adds six sample slots once. The sample setup is not repeated after `/reset` empties the schedule.
 
@@ -37,7 +37,14 @@ key.
 
 ## API
 
-All API routes require `X-API-Key: <API_KEY>`.
+Every route, including `/health` and unknown paths, requires `X-API-Key: <API_KEY>`. Requests without the configured key receive HTTP 401 before route handling.
+
+An importable Postman collection is available at
+[`postman/Clinic Booking API.postman_collection.json`](./postman/Clinic%20Booking%20API.postman_collection.json).
+Import it into Postman, set the `apiKey` collection variable (or select an
+environment that defines it), and use the included requests to explore the
+endpoints. The collection's `/reset` request is destructive and must only be
+used against a non-production API.
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -54,7 +61,7 @@ Booking writes are protected by a partial unique database index, so concurrent r
 
 The included `render.yaml` is a Render Blueprint for the API and the separate Next.js frontend. Push this project to a Git provider, create a PostgreSQL database (for example on Neon), then create or sync a Render Blueprint from the repository. Set `DATABASE_URL` to the database's SSL connection string and `API_KEY` to a secret value in the API service environment. Set `BACKEND_API_URL` and `BACKEND_API_KEY` in the frontend service environment. Do not commit `.env` files or expose the secret in frontend code.
 
-The web process listens on Render's `PORT`; database schema initialization runs at startup. Use a persistent PostgreSQL service for data retention.
+The web process listens on Render's `PORT`; database schema initialization runs at startup. The API Blueprint does not configure Render's unauthenticated HTTP health probe because every endpoint requires the API key. Use a persistent PostgreSQL service for data retention.
 
 ## Verify
 

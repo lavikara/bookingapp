@@ -1,0 +1,16 @@
+$kind: http-example
+request:
+  url: "{{apiBaseUrl}}/slots"
+  method: GET
+response:
+  statusCode: 401
+  statusText: Unauthorized
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "missing or invalid API key"
+      }
+order: 1000

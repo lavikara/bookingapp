@@ -5,7 +5,6 @@ services:
     plan: free
     buildCommand: npm install && npm run build
     startCommand: npm start
-    healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
         sync: false

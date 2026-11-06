@@ -9,7 +9,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/server.js",
     "dev": "tsx watch src/server.ts",
-    "test": "npm run build && node --test dist/test/validation.test.js dist/test/api.integration.test.js",
+    "test": "npm run build && node --test dist/test/validation.test.js dist/test/auth.test.js dist/test/api.integration.test.js",
     "test:integration": "npm run build && node --test dist/test/api.integration.test.js"
   },
   "dependencies": {
