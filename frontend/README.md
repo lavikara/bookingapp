@@ -34,3 +34,8 @@ ID), `POST /bookings`, and `DELETE /bookings/{id}` for ordinary frontend
 requests. It also forwards `POST /reset` only when the caller explicitly
 provides the valid `X-API-Key` header; this destructive admin operation is not
 invoked by the patient UI and does not inherit the server-side key implicitly.
+
+When `GET /api/backend/slots` reaches a sleeping backend, the request itself
+wakes the Render service. The proxy retries transient network errors and
+HTTP 429/502/503/504 responses with backoff for up to about 60 seconds of
+scheduled delay, allowing the backend time to start before showing an error.

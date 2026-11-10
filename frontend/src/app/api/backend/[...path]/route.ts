@@ -4,6 +4,62 @@ import { isIP } from "node:net";
 const API_PREFIX = "/api/backend";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const SLOT_RETRY_DELAYS_MS = [1_000, 2_000, 4_000, 8_000, 10_000, 10_000, 10_000, 10_000];
+const SLOT_RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
+const SLOT_RETRY_WINDOW_MS = 60_000;
+
+function retryAfterMs(response: Response, fallback: number): number {
+  const retryAfter = response.headers.get("retry-after");
+  if (!retryAfter) return fallback;
+
+  const seconds = Number(retryAfter);
+  if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1_000;
+
+  const retryAt = Date.parse(retryAfter);
+  return Number.isFinite(retryAt)
+    ? Math.max(0, retryAt - Date.now())
+    : fallback;
+}
+
+async function fetchSlotsWithColdStartRetry(
+  destination: URL,
+  headers: Headers,
+): Promise<Response> {
+  const startedAt = Date.now();
+
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const response = await fetch(destination, {
+        method: "GET",
+        headers,
+        cache: "no-store",
+      });
+      if (
+        !SLOT_RETRYABLE_STATUSES.has(response.status) ||
+        attempt >= SLOT_RETRY_DELAYS_MS.length
+      ) {
+        return response;
+      }
+
+      const delay = retryAfterMs(
+        response,
+        SLOT_RETRY_DELAYS_MS[attempt],
+      );
+      if (Date.now() - startedAt + delay > SLOT_RETRY_WINDOW_MS) {
+        return response;
+      }
+
+      await response.body?.cancel();
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    } catch (error) {
+      if (attempt >= SLOT_RETRY_DELAYS_MS.length) throw error;
+
+      const delay = SLOT_RETRY_DELAYS_MS[attempt];
+      if (Date.now() - startedAt + delay > SLOT_RETRY_WINDOW_MS) throw error;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
 
 function isAllowedRequest(path: string, method: string): boolean {
   if (path === "/reset") return method === "POST";
@@ -55,12 +111,15 @@ async function proxyRequest(request: NextRequest): Promise<NextResponse> {
   if (clientIp && isIP(clientIp)) headers.set("X-Booking-Client-IP", clientIp);
 
   try {
-    const response = await fetch(destination, {
-      method: request.method,
-      headers,
-      body: request.method === "POST" ? await request.text() : undefined,
-      cache: "no-store",
-    });
+    const response =
+      request.method === "GET" && path === "/slots"
+        ? await fetchSlotsWithColdStartRetry(destination, headers)
+        : await fetch(destination, {
+            method: request.method,
+            headers,
+            body: request.method === "POST" ? await request.text() : undefined,
+            cache: "no-store",
+          });
     const responseHeaders = new Headers();
     const responseType = response.headers.get("content-type");
     const retryAfter = response.headers.get("retry-after");
